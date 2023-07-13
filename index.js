@@ -1,8 +1,5 @@
-// Fetching cutom attributes made in html file
-
-const inputSlider = document.querySelector("[data-lengthSlider]");
-const lengthDisplay = document.querySelector("[data-lengthNumber]");
-
+// Fetching custom attributes made in HTML file
+const wordInput = document.querySelector("[data-wordInput]");
 const passwordDisplay = document.querySelector("[data-passwordDisplay]");
 const copyBtn = document.querySelector("[data-copy]");
 const copyMsg = document.querySelector("[data-copyMsg]");
@@ -15,50 +12,62 @@ const generateBtn = document.querySelector(".generateButton");
 const allCheckBox = document.querySelectorAll("input[type=checkbox]");
 const symbols = '~`!@#$%^&*()_-+={[}]|:;"<,>.?/';
 
-
 let password = "";
 let passwordLength = 10;
 let checkCount = 0;
 
-handleSLider();
-// set strengthColor attribute to grey
+handleSlider();
 
-
-// set passwordLEngth
-function handleSLider(){
-    inputSlider.value = passwordLength; //initialising it to 10
-    lengthDisplay.innerText = passwordLength;  
+// Set password length
+function handleSlider() {
+    const inputSlider = document.querySelector("[data-lengthSlider]");
+    inputSlider.value = passwordLength;
+    inputSlider.addEventListener('input', (e) => {
+        passwordLength = e.target.value;
+        updateLengthDisplay();
+    });
+    updateLengthDisplay();
 }
 
-// set color of strength
+// Update the password length display
+function updateLengthDisplay() {
+    const lengthDisplay = document.querySelector("[data-lengthNumber]");
+    lengthDisplay.innerText = passwordLength;
+}
+
+// Set color of strength indicator
 function setIndicator(color) {
     indicator.style.backgroundColor = color;
-    //shadow - HW
 }
 
-
+// Generate a random integer within a range
 function getRndInteger(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
 
+// Generate a random number
 function generateRandomNumber() {
-    return getRndInteger(0,9);
+    return getRndInteger(0, 9);
 }
 
-function generateLowerCase() {  
-       return String.fromCharCode(getRndInteger(97,123))
+// Generate a random lowercase letter
+function generateLowerCase() {
+    return String.fromCharCode(getRndInteger(97, 123));
 }
 
-function generateUpperCase() {  
-    return String.fromCharCode(getRndInteger(65,91))
+// Generate a random uppercase letter
+function generateUpperCase() {
+    return String.fromCharCode(getRndInteger(65, 91));
 }
 
+// Generate a random symbol
 function generateSymbol() {
     const randNum = getRndInteger(0, symbols.length);
     return symbols.charAt(randNum);
 }
 
-function calcStrength(){
+// Calculate the strength of the password
+function calcStrength() {
     let hasUpper = false;
     let hasLower = false;
     let hasNum = false;
@@ -71,150 +80,105 @@ function calcStrength(){
 
     if (hasUpper && hasLower && (hasNum || hasSym) && passwordLength >= 8) {
         setIndicator("#0f0");
-      } else if (
-        (hasLower || hasUpper) &&
-        (hasNum || hasSym) &&
-        passwordLength >= 6
-      ) {
+    } else if ((hasLower || hasUpper) && (hasNum || hasSym) && passwordLength >= 6) {
         setIndicator("#ff0");
-      } else {
+    } else {
         setIndicator("#f00");
-      }
+    }
 }
 
-    //   to show copied text
-
-    async function copyContent() { //for error handeling as await(promse is used)
-        try {
-            await navigator.clipboard.writeText(passwordDisplay.value);
+// Copy the password to the clipboard
+async function copyContent() {
+    try {
+        await navigator.clipboard.writeText(passwordDisplay.value);
         copyMsg.innerText = "Copied";
-        }
-        
-    
-        catch(e){
-            copyMsg.innerText = "Failed";
-        }
-        
-        
-        //to make copy wala span visible
-        copyMsg.classList.add("active");
-
-        setTimeout(() => {
-        copyMsg.classList.remove("active");
-        },2000);
-
+    } catch (e) {
+        copyMsg.innerText = "Failed";
     }
 
-// to add event listener in all checkboxes
-function handleCheckBoxChange(){
-    checkCount = 0;
-    allCheckBox.forEach((checkbox) =>{
-        if(checkbox.checked)
-            checkCount++;
-    }); // to count how many checkboxes are ticked
+    copyMsg.classList.add("active");
 
-    //special condition
-     if(passwordLength < checkCount){
-        passwordLength = checkCount;
-        handleSLider();
-     }
+    setTimeout(() => {
+        copyMsg.classList.remove("active");
+    }, 2000);
 }
 
-allCheckBox.forEach( (checkbox) => {
+// Handle checkbox change events
+function handleCheckBoxChange() {
+    checkCount = 0;
+    allCheckBox.forEach((checkbox) => {
+        if (checkbox.checked) checkCount++;
+    });
+
+    if (passwordLength < checkCount) {
+        passwordLength = checkCount;
+        handleSlider();
+    }
+}
+
+allCheckBox.forEach((checkbox) => {
     checkbox.addEventListener('change', handleCheckBoxChange);
-})
+});
 
-
-function shufflePassword(array) {
-    //Fisher Yates Method
+// Shuffle an array
+function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        const temp = array[i];
-        array[i] = array[j];
-        array[j] = temp;
-      }
-    let str = "";
-    array.forEach((el) => (str += el));
-    return str;
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array.join('');
 }
 
-
-// to copy input slider length to password length
-
-inputSlider.addEventListener('input', (e) => {
-    passwordLength = e.target.value;
-    handleSLider();
-});
-
-copyBtn.addEventListener('click',() => {
-    if(passwordDisplay.value)
-        copyContent();
-});
-
-// To generate password
-
-generateBtn.addEventListener('click',() =>{
-    // if no boxes checked
-    if(checkCount ==0)
-        return;
-
-    if(passwordLength < checkCount){ //for special condition
-        passwordLength = checkCount;
-        handleSLider();
+// Generate password based on the word input
+function generatePassword() {
+    const word = wordInput.value.trim();
+    if (word === '') {
+        return ''; // Empty word, return empty password
     }
-
-    console.log("Start");
-
-    // removing old passsword for new genration
-    password = "";
 
     let funArr = [];
 
-    if(uppercaseCheck.checked){
+    if (uppercaseCheck.checked) {
         funArr.push(generateUpperCase);
     }
 
-    if(lowercaseCheck.checked){
+    if (lowercaseCheck.checked) {
         funArr.push(generateLowerCase);
     }
 
-    if(numbersCheck.checked){
+    if (numbersCheck.checked) {
         funArr.push(generateRandomNumber);
     }
 
-    if(symbolsCheck.checked){
+    if (symbolsCheck.checked) {
         funArr.push(generateSymbol);
     }
 
-    // cumpulsory addition
-    for(let i=0; i<funArr.length;i++){
-        password +=funArr[i]();
-    }
-    console.log("Complusory Addition Done");
+    password = '';
 
-    // remainig addition
-    for(let i=0;i<passwordLength-funArr.length;i++){
-        let randIndex = getRndInteger(0,funArr.length);
-        console.log("randIndex"+ randIndex);
+    for (let i = 0; i < word.length; i++) {
+        password += word[i].toLowerCase(); // Add lowercase version of each character in the word
+    }
+
+    for (let i = 0; i < passwordLength - word.length; i++) {
+        const randIndex = getRndInteger(0, funArr.length);
         password += funArr[randIndex]();
-
     }
-    console.log("Remaining addition done");
 
-    // shuffling the recieved password
-    password = shufflePassword(Array.from(password));
-    console.log("Shuffling done");
+    password = shuffleArray(Array.from(password));
+    return password;
+}
 
-    // show in UI
-    passwordDisplay.value = password;
-    console.log("UI addition done");
-    
-    // calculate strength
+// Update the password field with the generated password
+function updatePasswordField() {
+    passwordDisplay.value = generatePassword();
     calcStrength();
-})
+}
 
+generateBtn.addEventListener('click', updatePasswordField);
 
- 
-
- 
-
+copyBtn.addEventListener('click', () => {
+    if (passwordDisplay.value) {
+        copyContent();
+    }
+});
